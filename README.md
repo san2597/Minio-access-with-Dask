@@ -1,7 +1,7 @@
 # Minio-access-with-Dask
 
 ## KEY IDEA
-Access objects in a bucket on the MinIO storage server using Dask for Python.
+Access objects in a bucket on a MinIO storage server using Dask for Python.
 
 ## HOW?
 Dask can read non-image files (.json, .csv, .text) stored remotely using the storage_options argument available for all Dask functions. To work with images stored remotely, they have to be first downloaded to the local system before being read by Dask (**Error 403** is reported by dask_image.imread.imread otherwise). The images are downloaded to a **"minioData"** folder created in the folder where the file is executed. 
