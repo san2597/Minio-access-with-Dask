@@ -38,8 +38,7 @@ img_file_exts = ['.jpg','.jpeg','.bmp','.png','.tiff','.gif']
 
 for obj in bucket_objs:
 	if os.path.splitext(obj.object_name)[1] in img_file_exts:
-		pass
-		# minioClient.fget_object(bucket_name,obj.object_name,minioDataDir+obj.object_name)
+		minioClient.fget_object(bucket_name,obj.object_name,minioDataDir+obj.object_name)
 	elif os.path.splitext(obj.object_name)[1]=='.json':
 		json_files.append('s3://'+bucket_name+'/'+obj.object_name)
 	elif os.path.splitext(obj.object_name)[1]=='.txt':
