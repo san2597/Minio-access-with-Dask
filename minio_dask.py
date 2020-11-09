@@ -11,6 +11,10 @@ minio_url = 'play.min.io:9000'
 dask_endpoint_url = 'https://play.min.io:9000'
 minioDataDir = './minioData/'
 
+path = minioDataDir+'DayNightData/'
+csvPath = './train.csv'
+parquetPath = './train_csv.parquet'
+
 
 """
 The following section creates a Minio object and download data from the bucket 
@@ -57,7 +61,7 @@ Delayed loading of image files is done below
 """"""
 import dask
 import dask.array as da
-path = minioDataDir+'DayNightData/'
+
 
 """
 Label Encoding
@@ -128,19 +132,21 @@ print("Loading text data")
 txtData = dask.delayed(db.read_text)(txt_files,storage_options=minio_storage).to_dataframe()
 # print(txtData.compute().head(10,npartitions=2))
 
-csvPath = '/media/san2597/New Volume/Downloads/train.csv'
-parquetPath = '/media/san2597/New Volume/Downloads/train_csv.parquet'
+
+minioClient.fget_object(bucket_name,csv_files[1],csvPath)
+
+
 print("Loading csv data")
 csvData = dd.read_csv(csvPath)
 # print(csvData.compute().head())
 
 
 print("Saving csv data as parquet data")
-# csvData.to_parquet('s3://'+bucket_name+'/train_csv.parquet',engine='fastparquet',compression='gzip',storage_options=minio_storage)
-
+csvData.to_parquet('s3://'+bucket_name+'/train_csv.parquet',engine='fastparquet',compression='gzip',storage_options=minio_storage)
 print("CSV file is saved in parquet format")
 
-# csvData.to_parquet('./train_csv.parquet',engine='fastparquet',compression='gzip')
+
+minioClient.fget_object(bucket_name,'train_csv.parquet',parquetPath)
 
 parquetData = dd.read_parquet(parquetPath,engine='fastparquet')
 
