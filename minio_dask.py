@@ -38,7 +38,8 @@ img_file_exts = ['.jpg','.jpeg','.bmp','.png','.tiff','.gif']
 
 for obj in bucket_objs:
 	if os.path.splitext(obj.object_name)[1] in img_file_exts:
-		minioClient.fget_object(bucket_name,obj.object_name,minioDataDir+obj.object_name)
+		pass
+		# minioClient.fget_object(bucket_name,obj.object_name,minioDataDir+obj.object_name)
 	elif os.path.splitext(obj.object_name)[1]=='.json':
 		json_files.append('s3://'+bucket_name+'/'+obj.object_name)
 	elif os.path.splitext(obj.object_name)[1]=='.txt':
@@ -109,6 +110,7 @@ Non-image files can be accessed directly from remote server using dask.dataframe
 import dask.dataframe as dd
 import dask.bag as db
 import json
+import time
 
 minio_storage = {
 	"key":minio_key, "secret":minio_secret,
@@ -120,12 +122,34 @@ minio_storage = {
 
 print("Loading json data")
 jsonData = dask.delayed(db.read_text)(json_files,storage_options=minio_storage).map(json.loads).to_dataframe()
-print(jsonData.compute().head())
+# print(jsonData.compute().head())
 
 print("Loading text data")
 txtData = dask.delayed(db.read_text)(txt_files,storage_options=minio_storage).to_dataframe()
-print(txtData.compute().head(10,npartitions=2))
+# print(txtData.compute().head(10,npartitions=2))
 
+csvPath = '/media/san2597/New Volume/Downloads/train.csv'
+parquetPath = '/media/san2597/New Volume/Downloads/train_csv.parquet'
 print("Loading csv data")
-csvData = dask.delayed(dd.read_csv)(csv_files,storage_options=minio_storage)
-print(csvData.compute().head())
+csvData = dd.read_csv(csvPath)
+# print(csvData.compute().head())
+
+
+print("Saving csv data as parquet data")
+# csvData.to_parquet('s3://'+bucket_name+'/train_csv.parquet',engine='fastparquet',compression='gzip',storage_options=minio_storage)
+
+print("CSV file is saved in parquet format")
+
+# csvData.to_parquet('./train_csv.parquet',engine='fastparquet',compression='gzip')
+
+parquetData = dd.read_parquet(parquetPath,engine='fastparquet')
+
+
+start = time.process_time()
+print(parquetData.passenger_count.sum().compute())
+print("Parquet data computation time: ",time.process_time()-start)
+
+start = time.process_time()
+print(csvData.passenger_count.sum().compute())
+print("CSV data computation time: ",time.process_time()-start)
+
